@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from scipy.optimize import fmin_tnc
 
 
 def hθ(theta, X):
@@ -31,7 +32,7 @@ def J(theta, X, y):
     cost = (1/2*len(y)) * np.sum(np.square(np.dot(X, theta)-y))
     return cost
 
-def derivated_term_J(theta, X, y, α):
+def derivated_term_J(theta, X, y):
     """ Squared error function derivated
 
     Parameters:
@@ -43,7 +44,7 @@ def derivated_term_J(theta, X, y, α):
     Retunrs:
         (vector): Tentative parameters theta
     """
-    θ =  theta - 1/len(y) * α * (X.transpose().dot(hθ(theta, X) - y))
+    θ =  1/len(y) * (X.transpose().dot(hθ(theta, X) - y))
     return θ
 
 def gradient_descent(theta, X, y, α, iterations):
@@ -61,7 +62,7 @@ def gradient_descent(theta, X, y, α, iterations):
     """
     cost_history = np.zeros(iterations)
     for i in range(iterations):
-        theta = derivated_term_J(theta, X, y, α)
+        theta = theta - α * derivated_term_J(theta, X, y)
         cost_history[i]  = J(theta, X, y)
 
     return theta, cost_history
@@ -94,6 +95,13 @@ def gradient_descent_debugger(iterations, cost_history):
     plt.show()
 
 
+def pro_min_functions(theta, X, y):
+    """ Python minimizing tool kit <3 """
+    return fmin_tnc(
+        func=J, x0=theta, fprime=derivated_term_J,
+        args=(X, y))[0]
+
+
 if __name__ == "__main__":
     data = pd.read_csv("pokemon_data.csv")
 
@@ -104,13 +112,15 @@ if __name__ == "__main__":
 
     """ I used a very very small α because it
         was overshooting the minimum """
-    α = 0.00001
+    α = 0.00009
     y = y.values.reshape(len(y.values), 1)
     theta = np.array([0, 0]).reshape(2, 1)
-    iterations = 1500
+    iterations = 900000
 
     theta, cost_history = gradient_descent(
         theta, X, y, α, iterations)
-
     gradient_descent_debugger(iterations, cost_history)
+    plot_results(max(y), theta)
+
+    theta = pro_min_functions(theta, X, y.flatten())
     plot_results(max(y), theta)
