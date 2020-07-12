@@ -67,16 +67,15 @@ def gradient_descent(theta, X, y, α, iterations):
 
     return theta, cost_history
 
-def plot_results(size, theta):
+def plot_results(theta, data):
     """ Plotting results, our straight line and data examples
 
     Parameters:
         theta (vector): Parameters verctor
-        size (number): Max size to plot straight line
     """
-    data.plot.scatter(x="Attack", y="Speed")
-    plt.plot(np.arange(max(size)),
-             theta[0] + theta[1] * np.arange(max(size)),
+    data.plot.scatter(x="Size", y="Price")
+    x = np.linspace(-0.2, 0.8, 1000)
+    plt.plot(x, theta[0] + theta[1] * x + theta[2] * x ** 2,
              'r-')
     plt.show()
 
@@ -101,26 +100,57 @@ def pro_min_functions(theta, X, y):
         func=J, x0=theta, fprime=derivated_term_J,
         args=(X, y))[0]
 
+def mean_normalization(described, example, col):
+    return ((example - described.at["mean", col]) /
+            (described.at["max", col] - described.at["min", col]))
 
-if __name__ == "__main__":
+def feature_scaling(data):
+    """ scaling features speedup optimization """
+    described = data.describe()
+    for col in data.columns:
+        for row in range(len(data[str(col)])):
+            data.at[row, col] = mean_normalization(
+                described, data.at[row, col], col)
+    return data
+
+def first_way():
+    """ Used gradient descent and polinomial regression """
     data = pd.read_csv("pokemon_data.csv")
-
+    data["Attack2"] = data["Attack"] ** 2
     data["bias"] = 1
 
-    X = data[["bias", "Attack"]].values
+    X = data[["bias", "Attack", "Attack2"]].values
     y = data["Speed"]
 
     """ I used a very very small α because it
         was overshooting the minimum """
-    α = 0.00009
+    α = 0.0000000001
     y = y.values.reshape(len(y.values), 1)
-    theta = np.array([0, 0]).reshape(2, 1)
+    theta = np.array([0, 0, 0]).reshape(3, 1)
     iterations = 900000
 
     theta, cost_history = gradient_descent(
         theta, X, y, α, iterations)
     gradient_descent_debugger(iterations, cost_history)
-    plot_results(max(y), theta)
+    plot_results(theta, data)
 
-    theta = pro_min_functions(theta, X, y.flatten())
-    plot_results(max(y), theta)
+def second_way():
+    """ Used fmin_tnc, polinomial regression and feature scaling """
+    data = pd.read_csv("house_pricing.csv")
+    data = feature_scaling(data)
+    data["Size2"] = data["Size"] ** 2
+    data["bias"] = 1
+
+    X = data[["bias", "Size", "Size2"]].values
+    y = data["Price"]
+
+    theta = np.array([0, 0, 0]).reshape(3, 1)
+
+    theta = pro_min_functions(theta, X, y)
+    plot_results(theta, data)
+
+if __name__ == "__main__":
+    """ Be aware, if you want to run this code, you will need to change
+        plot_results function
+    """
+    second_way()
