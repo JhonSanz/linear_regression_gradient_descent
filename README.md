@@ -3,6 +3,10 @@ As a supervised learning algorithm, our dataset tell us how data examples behavi
 
 Once we have our straight line, we can predict ordinate given an abscissa from new data (if we are in 2D)
 
+![linear_regression](https://github.com/JhonSanz/linear_regression_gradient_descent/blob/master/linear_regression.png?raw=true)
+
+
+
 # Linear regression model
 
 ## Hypotesis hθ(X)
